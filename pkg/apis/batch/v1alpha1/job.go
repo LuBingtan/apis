@@ -264,6 +264,38 @@ type TaskState struct {
 	Phase map[v1.PodPhase]int32 `json:"phase,omitempty" protobuf:"bytes,11,opt,name=phase"`
 }
 
+// JobConditionType is a valid value for JobCondition.Type
+type JobConditionType string
+
+const (
+	// JobCreated means the job is accepted by system
+	JobCreated JobConditionType = "Created"
+
+	// JobScheduled means the job is scheduled
+	JobScheduled JobConditionType = "Scheduled"
+
+	// JobRunning means minimal available tasks of Job are running
+	JobRunning JobConditionType = "Running"
+
+	// JobRestarting means the job is waiting for pod releasing and recreating
+	JobRestarting JobConditionType = "Restarting"
+
+	// JobComplete means the job has completed its execution.
+	JobComplete JobConditionType = "Complete"
+
+	// JobFailed means the job has failed its execution.
+	JobFailed JobConditionType = "Failed"
+)
+
+type JobCondition struct {
+	Type               JobConditionType   `json:"type" protobuf:"bytes,1,opt,name=type,casttype=JobConditionType"`
+	Status             v1.ConditionStatus `json:"status" protobuf:"bytes,2,opt,name=status,casttype=ConditionStatus"`
+	LastProbeTime      metav1.Time        `json:"lastProbeTime,omitempty" protobuf:"bytes,3,opt,name=lastProbeTime"`
+	LastTransitionTime metav1.Time        `json:"lastTransitionTime,omitempty" protobuf:"bytes,4,opt,name=lastTransitionTime"`
+	Reason             string             `json:"reason,omitempty" protobuf:"bytes,5,opt,name=reason"`
+	Message            string             `json:"message,omitempty" protobuf:"bytes,6,opt,name=message"`
+}
+
 // JobStatus represents the current status of a Job.
 type JobStatus struct {
 	// Current state of Job.
@@ -317,6 +349,9 @@ type JobStatus struct {
 	// The resources that controlled by this job, e.g. Service, ConfigMap
 	// +optional
 	ControlledResources map[string]string `json:"controlledResources,omitempty" protobuf:"bytes,11,opt,name=controlledResources"`
+
+	// Conditions is the latest available observations of a job's current state
+	Conditions []JobCondition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,12,rep,name=conditions"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
